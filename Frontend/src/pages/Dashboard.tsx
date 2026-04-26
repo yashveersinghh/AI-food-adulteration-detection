@@ -53,7 +53,7 @@ export function Dashboard({ onStart }: { onStart: () => void }) {
             { title: "Spectral Signatures", icon: <Activity className="w-6 h-6" />, desc: "NIR and FTIR spectroscopy to identify chemical anomalies at a molecular level." },
             { title: "Sensor Fusion", icon: <Cpu className="w-6 h-6" />, desc: "Late-stage neural fusion of all modalities to eliminate false positives." },
             { title: "Grad-CAM Explainability", icon: <Microscope className="w-6 h-6" />, desc: "Heatmap generation showing exactly which regions of the sample triggered alerts." },
-            { title: "Chemical Indicators (Dataset-Based)", icon: <Database className="w-6 h-6" />, desc: "Analysis of pH, moisture, and chemical properties using pre-collected dataset samples." },
+            { title: "Chemical Indicators", icon: <Database className="w-6 h-6" />, desc: "Analysis of pH, moisture, and chemical properties using pre-collected dataset samples." },
             { title: "Immutable Logging", icon: <ShieldAlert className="w-6 h-6" />, desc: "Cryptographically verifiable run history to ensure supply chain integrity." },
           ].map((cap, i) => (
             <div key={i} className="bg-card/50 border border-border rounded-xl p-6 hover:bg-card hover:border-primary/50 transition-colors group">

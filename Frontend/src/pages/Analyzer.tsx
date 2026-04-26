@@ -190,7 +190,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 animate-in fade-in duration-300">
+    <div className="container mx-auto px-4 py-8 max-w-5xl space-y-8 animate-in fade-in duration-300">
       <div>
         <h1 className="text-3xl font-bold mb-2">Configure Analysis</h1>
         <p className="text-muted-foreground">Select the product type and provide available sensor data.</p>
