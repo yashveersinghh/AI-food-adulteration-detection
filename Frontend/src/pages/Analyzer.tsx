@@ -292,7 +292,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
               <span className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">4</span>
               Sensor Data (Optional)
             </CardTitle>
-            <CardDescription>Upload CSV (key,value) or JSON with sensor values.</CardDescription>
+            <CardDescription>Upload CSV/JSON sensor data file.</CardDescription>
           </CardHeader>
 
           <CardContent>
