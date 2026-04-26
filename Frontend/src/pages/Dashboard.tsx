@@ -30,15 +30,15 @@ export function Dashboard({ onStart }: { onStart: () => void }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-22">
         {[
-          { label: "Analyses Performed", value: "14,208" },
-          { label: "Adulterants Found", value: "3,192" },
           { label: "Supported Products", value: "5" },
-          { label: "System Uptime", value: "99.99%" },
+          { label: "Input Types", value: "3" },
+          { label: "Supported Formats", value: "JPG, PNG, CSV" },
+          { label: "Parameters Analyzed", value: "5+" },
         ].map((stat, i) => (
           <div key={i} className="bg-card border border-border rounded-xl p-6 flex flex-col items-center text-center">
-            <span className="text-3xl font-bold text-foreground mb-2">{stat.value}</span>
+            <span className="text-2xl font-bold text-foreground mb-2">{stat.value}</span>
             <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</span>
           </div>
         ))}

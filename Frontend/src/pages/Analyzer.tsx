@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UploadCloud, FileType, CheckCircle2, Play, Loader2, Activity, Cpu, File } from "lucide-react";
+import { UploadCloud, FileType, CheckCircle2, Play, Loader2, Activity, Cpu, File, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -331,7 +331,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
             ) : (
               <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-card transition-colors">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Activity className="w-8 h-8 mb-3 text-muted-foreground" />
+                  <Database className="w-8 h-8 mb-3 text-muted-foreground" />
                   <p className="mb-2 text-sm text-muted-foreground">
                     <span className="font-semibold text-foreground">
                       Click to upload
