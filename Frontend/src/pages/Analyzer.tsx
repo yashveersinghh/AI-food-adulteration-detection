@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { UploadCloud, FileType, CheckCircle2, Play, Loader2, Activity, Cpu, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -10,14 +9,6 @@ import { runInference } from "../utils/mockAI";
 import { FoodProduct, AnalysisResult } from "../types";
 
 const PRODUCTS: FoodProduct[] = ["Saffron", "Vanilla", "Cashews", "Pistachios", "A2 Desi Cow Milk"];
-
-const SENSORS: Record<FoodProduct, string[]> = {
-  "Saffron": ["Moisture %", "Crocin level", "Picrocrocin", "Safranal"],
-  "Vanilla": ["Moisture %", "Vanillin %", "pH", "Ethanol residue"],
-  "Cashews": ["Moisture %", "Fat %", "Aflatoxin (ppb)", "Free fatty acid %"],
-  "Pistachios": ["Moisture %", "Lipid %", "Color L*", "Aflatoxin (ppb)"],
-  "A2 Desi Cow Milk": ["pH", "Density (g/mL)", "Fat %", "SNF %"]
-};
 
 const STEPS = [
   "Preprocessing image",
@@ -34,20 +25,16 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [spectralFile, setSpectralFile] = useState<File | null>(null);
-  const [sensorEnabled, setSensorEnabled] = useState(false);
+  const [sensorFile, setSensorFile] = useState<File | null>(null);
   const [sensors, setSensors] = useState<Record<string, number>>({});
+  const [sensorParseError, setSensorParseError] = useState<string | null>(null);
 
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stepLabel, setStepLabel] = useState(STEPS[0]);
 
-  const sensorLabels = SENSORS[product];
-  const filledSensorCount = sensorLabels.filter(label => {
-    const v = sensors[label];
-    return typeof v === "number" && !Number.isNaN(v) && v !== 0;
-  }).length;
-  const sensorsReady = sensorEnabled && filledSensorCount === sensorLabels.length;
-  const canRun = Boolean(image) || Boolean(spectralFile) || sensorsReady;
+  const sensorEnabled = Boolean(sensorFile) && sensorParseError == null;
+  const canRun = Boolean(image) || Boolean(spectralFile) || sensorEnabled;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -63,6 +50,69 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
     if (e.target.files && e.target.files[0]) {
       setSpectralFile(e.target.files[0]);
     }
+  };
+
+  const handleSensorUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+
+    const file = e.target.files[0];
+    setSensorFile(file);
+    setSensorParseError(null);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = String(reader.result ?? "");
+        const ext = file.name.split(".").pop()?.toLowerCase();
+
+        // Accept either:
+        // - JSON: { "pH": 6.7, "Moisture %": 12.3 }
+        // - CSV/TXT: each line "key,value" (header allowed)
+        let parsed: Record<string, number> = {};
+
+        if (ext === "json") {
+          const obj = JSON.parse(text) as unknown;
+          if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+            for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+              const num = typeof v === "number" ? v : Number(v);
+              if (Number.isFinite(num)) parsed[k] = num;
+            }
+          }
+        } else {
+          const lines = text
+            .split(/\r?\n/g)
+            .map(l => l.trim())
+            .filter(Boolean);
+
+          for (const line of lines) {
+            // skip header-ish lines
+            if (/^(key|name)\s*,\s*(value|val)$/i.test(line)) continue;
+            const parts = line.split(",");
+            if (parts.length < 2) continue;
+            const key = parts[0].trim();
+            const value = Number(parts.slice(1).join(",").trim());
+            if (key && Number.isFinite(value)) parsed[key] = value;
+          }
+        }
+
+        if (Object.keys(parsed).length === 0) {
+          setSensors({});
+          setSensorParseError("Could not read any numeric sensor values from this file.");
+          return;
+        }
+
+        setSensors(parsed);
+        setSensorParseError(null);
+      } catch {
+        setSensors({});
+        setSensorParseError("Failed to parse sensor file. Try CSV (key,value) or JSON.");
+      }
+    };
+    reader.onerror = () => {
+      setSensors({});
+      setSensorParseError("Failed to read sensor file.");
+    };
+    reader.readAsText(file);
   };
 
   const startAnalysis = async () => {
@@ -172,7 +222,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
       </Card>
 
       {/* Step 2: Modalities */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -236,45 +286,75 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Step 4: Sensors */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div className="space-y-1">
+        <Card>
+          <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <span className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">4</span>
-              Physical / Chemical Sensors
+              Sensor Data (Optional)
             </CardTitle>
-            <CardDescription>Manual or connected probe inputs.</CardDescription>
-          </div>
-          <Switch
-            checked={sensorEnabled}
-            onCheckedChange={(checked) => {
-              setSensorEnabled(checked);
-              if (!checked) setSensors({});
-            }}
-            data-testid="switch-sensors"
-          />
-        </CardHeader>
-        {sensorEnabled && (
-          <CardContent className="pt-4 animate-in slide-in-from-top-4 duration-300">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {SENSORS[product].map(label => (
-                <div key={label} className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">{label}</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="0.00" 
-                    className="bg-card font-mono"
-                    onChange={(e) => setSensors(s => ({...s, [label]: parseFloat(e.target.value)}))}
-                  />
+            <CardDescription>Upload CSV (key,value) or JSON with sensor values.</CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {sensorFile ? (
+              <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-card/50">
+                <div className="w-10 h-10 rounded bg-primary/20 flex items-center justify-center text-primary">
+                  <FileType className="w-5 h-5" />
                 </div>
-              ))}
-            </div>
+
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-sm font-medium truncate">{sensorFile.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(sensorFile.size / 1024).toFixed(1)} KB
+                  </p>
+                  {sensorParseError ? (
+                    <p className="text-xs text-destructive mt-1">{sensorParseError}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Parsed {Object.keys(sensors).length} value{Object.keys(sensors).length === 1 ? "" : "s"}.
+                    </p>
+                  )}
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setSensorFile(null);
+                    setSensors({});
+                    setSensorParseError(null);
+                  }}
+                >
+                  &times;
+                </Button>
+              </div>
+            ) : (
+              <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-card transition-colors">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Activity className="w-8 h-8 mb-3 text-muted-foreground" />
+                  <p className="mb-2 text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      Click to upload
+                    </span>{" "}
+                    or drag and drop
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    CSV, TXT, JSON
+                  </p>
+                </div>
+
+                <Input
+                  type="file"
+                  accept=".csv,.txt,.json"
+                  className="hidden"
+                  onChange={handleSensorUpload}
+                  data-testid="input-sensors"
+                />
+              </Label>
+            )}
           </CardContent>
-        )}
-      </Card>
+</Card>
+      </div>
 
       {/* Action */}
       <div className="pt-6 border-t border-border flex justify-end">
@@ -291,9 +371,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
       </div>
       {!canRun && (
         <p className="text-center text-sm text-destructive mt-2">
-          {sensorEnabled && !image && !spectralFile
-            ? `Enter a non-zero value for all ${sensorLabels.length} sensor inputs, or provide an image or spectral file.`
-            : "Provide at least one input modality (Image, Spectral, or Sensors) to run analysis."}
+          Provide at least one input modality (Image, Spectral, or Sensor file) to run analysis.
         </p>
       )}
     </div>

@@ -63,7 +63,7 @@ export function About() {
               <ul className="list-disc pl-5 space-y-2 text-foreground">
                 <li><strong className="text-blue-400">Visual Branch:</strong> Transformer and CNN backbones that process microscopic imagery to detect physical anomalies, unexpected structures, or color irregularities.</li>
                 <li><strong className="text-purple-400">Spectral Branch:</strong> A 1D Convolutional Transformer designed to parse NIR/FTIR spectroscopic data, identifying chemical signatures of common adulterants (e.g., urea in milk, synthetic dyes in saffron).</li>
-                <li><strong className="text-cyan-400">Sensor Branch:</strong> A tabular Transformer processing readings from connected IoT probes (pH, moisture, density).</li>
+                <li><strong className="text-cyan-400">Sensor Data Branch:</strong> A tabular Transformer processing pre-recorded dataset readings (pH, moisture, density).</li>
               </ul>
               <p>
                 These modalities are fused via a Cross-Modal Attention Fusion Network, providing a unified confidence score that is significantly more robust than any single-sensor approach.
