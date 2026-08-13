@@ -23,8 +23,12 @@ export function Navbar({ currentView, setView, historyCount }: NavbarProps) {
           onClick={() => setView("dashboard")}
           data-testid="link-logo"
         >
-          <div className="w-8 h-8 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-            FG
+          <div className="w-8 h-8 overflow-hidden">
+            <img
+              src="/food.jpeg"
+              alt="FoodGuard logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <span className="font-bold text-lg tracking-tight">FoodGuard<span className="text-muted-foreground">-AI</span></span>
         </div>
@@ -36,7 +40,7 @@ export function Navbar({ currentView, setView, historyCount }: NavbarProps) {
               onClick={() => setView(item.id)}
               className={`px-4 py-2 rounded-md text-sm cursor-pointer font-medium transition-colors ${
                 currentView === item.id 
-                  ? "bg-primary/10 text-primary" 
+                  ? "bg-primary/10 text-[#EBACFC]" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
               data-testid={`link-nav-${item.id}`}

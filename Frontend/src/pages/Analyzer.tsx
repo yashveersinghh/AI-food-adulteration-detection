@@ -165,13 +165,13 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
   if (analyzing) {
     return (
       <div className="container mx-auto px-4 py-24 max-w-3xl flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in duration-500">
-        <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mb-8 relative">
-          <div className="absolute inset-0 border-4 border-primary/30 rounded-full"></div>
+        <div className="w-24 h-24 rounded-full bg-black/20 flex items-center justify-center mb-8 relative">
+          <div className="absolute inset-0 border-4 border-black/30 rounded-full"></div>
           <div 
-            className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"
+            className="absolute inset-0 border-4 border-black rounded-full border-t-transparent animate-spin"
             style={{ animationDuration: '1.5s' }}
           ></div>
-          <Cpu className="w-10 h-10 text-primary animate-pulse" />
+          <Cpu className="w-10 h-10 text-black animate-pulse" />
         </div>
         
         <h2 className="text-2xl font-bold mb-2">Analyzing Sample</h2>
@@ -200,7 +200,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <span className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+            <span className="bg-black text-black-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">1</span>
             Select Target Product
           </CardTitle>
         </CardHeader>
@@ -210,7 +210,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
               <Button
                 key={p}
                 variant={product === p ? "default" : "outline"}
-                className={`${product === p ? "bg-primary" : "bg-transparent"} cursor-pointer`}
+                className={`${product === p ? "bg-white text-black" : "bg-transparent"} cursor-pointer`}
                 onClick={() => { setProduct(p); setSensors({}); }}
                 data-testid={`button-product-${p.replace(/\s+/g, '-').toLowerCase()}`}
               >
@@ -226,7 +226,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <span className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+              <span className="bg-black text-black-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">2</span>
               Visual Data (Optional)
             </CardTitle>
             <CardDescription>Upload microscopic or macro imagery.</CardDescription>
@@ -240,7 +240,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
                 </div>
               </div>
             ) : (
-              <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-card transition-colors">
+              <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-black/50 hover:bg-card transition-colors">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <UploadCloud className="w-8 h-8 mb-3 text-muted-foreground" />
                   <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-foreground">Click to upload</span> or drag and drop</p>
@@ -255,7 +255,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <span className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+              <span className="bg-black text-black-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">3</span>
               Spectral Data (Optional)
             </CardTitle>
             <CardDescription>Upload NIR/FTIR spectral file.</CardDescription>
@@ -263,7 +263,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
           <CardContent>
             {spectralFile ? (
               <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-card/50">
-                <div className="w-10 h-10 rounded bg-primary/20 flex items-center justify-center text-primary">
+                <div className="w-10 h-10 rounded bg-black/20 flex items-center justify-center text-black">
                   <FileType className="w-5 h-5" />
                 </div>
                 <div className="flex-1 overflow-hidden">
@@ -275,7 +275,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
                 </Button>
               </div>
             ) : (
-              <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-card transition-colors">
+              <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-black/50 hover:bg-card transition-colors">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <Activity className="w-8 h-8 mb-3 text-muted-foreground" />
                   <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-foreground">Click to upload</span> or drag and drop</p>
@@ -289,7 +289,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <span className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">4</span>
+              <span className="bg-black text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">4</span>
               Sensor Data (Optional)
             </CardTitle>
             <CardDescription>Upload CSV/JSON sensor data file.</CardDescription>
@@ -362,7 +362,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
           size="lg"
           disabled={!canRun}
           onClick={startAnalysis}
-          className="w-full md:w-auto bg-gradient-to-r cursor-pointer from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium text-lg px-12 py-6 h-auto"
+          className="w-full md:w-auto bg-gradient-to-r rounded-full cursor-pointer bg-white text-black font-medium text-lg px-12 py-6 h-auto"
           data-testid="button-run-analysis"
         >
           {canRun ? <Play className="w-5 h-5 mr-2 fill-current" /> : null}

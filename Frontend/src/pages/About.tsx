@@ -1,5 +1,3 @@
-import React from "react";
-import { Code2, Cpu, Brain, Database } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const AI_STACK: { category: string; name: string }[] = [
@@ -52,7 +50,6 @@ export function About() {
       <div className="space-y-8">
         <section>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Cpu className="w-6 h-6 text-primary" />
             The Architecture
           </h2>
           <Card className="bg-card/50">
@@ -61,9 +58,9 @@ export function About() {
                 FoodGuard-AI demonstrates a theoretical late-stage fusion architecture combining three distinct neural modalities:
               </p>
               <ul className="list-disc pl-5 space-y-2 text-foreground">
-                <li><strong className="text-blue-400">Visual Branch:</strong> Transformer and CNN backbones that process microscopic imagery to detect physical anomalies, unexpected structures, or color irregularities.</li>
-                <li><strong className="text-purple-400">Spectral Branch:</strong> A 1D Convolutional Transformer designed to parse NIR/FTIR spectroscopic data, identifying chemical signatures of common adulterants (e.g., urea in milk, synthetic dyes in saffron).</li>
-                <li><strong className="text-cyan-400">Sensor Data Branch:</strong> A tabular Transformer processing pre-recorded dataset readings (pH, moisture, density).</li>
+                <li><strong>Visual Branch:</strong> Transformer and CNN backbones that process microscopic imagery to detect physical anomalies, unexpected structures, or color irregularities.</li>
+                <li><strong>Spectral Branch:</strong> A 1D Convolutional Transformer designed to parse NIR/FTIR spectroscopic data, identifying chemical signatures of common adulterants (e.g., urea in milk, synthetic dyes in saffron).</li>
+                <li><strong>Sensor Data Branch:</strong> A tabular Transformer processing pre-recorded dataset readings (pH, moisture, density).</li>
               </ul>
               <p>
                 These modalities are fused via a Cross-Modal Attention Fusion Network, providing a unified confidence score that is significantly more robust than any single-sensor approach.
@@ -74,14 +71,13 @@ export function About() {
 
         <section>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Brain className="w-6 h-6 text-primary" />
             AI/ML Technology Stack
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {AI_STACK.map((item, idx) => (
               <div
                 key={`${item.category}-${item.name}-${idx}`}
-                className="bg-card border border-border rounded-lg p-4 hover:border-primary/40 transition-colors"
+                className="bg-card border border-border rounded-lg p-4"
                 data-testid={`card-ai-stack-${idx}`}
               >
                 <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">
@@ -97,37 +93,22 @@ export function About() {
 
         <section>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Database className="w-6 h-6 text-primary" />
             Datasets Used
           </h2>
           <div className="space-y-3">
             {DATASETS.map((ds, idx) => (
               <div
                 key={ds.name}
-                className="bg-card border border-border rounded-lg p-4 hover:border-primary/40 transition-colors"
+                className="bg-card border border-border rounded-lg p-4"
                 data-testid={`card-dataset-${idx}`}
               >
                 <div className="flex items-start justify-between gap-3 mb-1">
                   <div className="font-semibold text-foreground">{ds.name}</div>
-                  <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20">
+                  <span className="shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border border-[#EBACFC]/20">
                     {ds.modality}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{ds.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Code2 className="w-6 h-6 text-primary" />
-            Tech Stack
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            {["React 18", "TypeScript", "Vite", "Tailwind CSS", "shadcn/ui", "Lucide Icons"].map(tech => (
-              <div key={tech} className="bg-card border border-border rounded-lg p-4 font-mono text-sm text-center">
-                {tech}
               </div>
             ))}
           </div>
