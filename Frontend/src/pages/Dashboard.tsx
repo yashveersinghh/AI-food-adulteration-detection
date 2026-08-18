@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, Sparkles } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 import { SaffronCard } from '../components/SaffronCard';
 import { VanillaCard } from '../components/VanillaCard';
@@ -8,6 +7,7 @@ import { CashewCard } from '../components/CashewCard';
 import { PistachioCard } from '../components/PistachioCard';
 import { MilkCard } from '../components/MilkCard';
 import { FeatureBento } from '../components/FeatureBento';
+import { Footer } from '../components/Footer';
 
 export function Dashboard({ onStart }: { onStart?: () => void }) {
   return (
@@ -25,7 +25,6 @@ export function Dashboard({ onStart }: { onStart?: () => void }) {
             transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 border border-black/5 shadow-xs mb-8 text-xs font-semibold uppercase tracking-widest text-[#B55A30]"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#E06D53]" />
             <span>AI Multimodal Food Guard</span>
           </motion.div>
 
@@ -44,7 +43,7 @@ export function Dashboard({ onStart }: { onStart?: () => void }) {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="mt-6 text-lg text-black/60 font-normal leading-relaxed max-w-xl mx-auto"
           >
-            Microscopic, spectral, and chemical sensor analysis fused across PyTorch neural backbones for instant purity scorecards.
+            Multi-modal neural fusion for instant food purity testing and quality verification.
           </motion.p>
 
           <motion.div
@@ -95,6 +94,7 @@ export function Dashboard({ onStart }: { onStart?: () => void }) {
           <FeatureBento />
         </section>
 
+      <Footer />
       </main>
     </div>
   );

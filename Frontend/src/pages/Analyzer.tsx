@@ -1,5 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { UploadCloud, FileType, CheckCircle2, Play, Loader2, Activity, Cpu, File, Database } from "lucide-react";
+import React, { useState } from "react";
+import { 
+  UploadCloud, 
+  FileType, 
+  Play, 
+  Activity, 
+  Cpu, 
+  Database, 
+  X, 
+  Check, 
+  AlertCircle ,
+  ArrowRight
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -8,19 +19,27 @@ import { Progress } from "@/components/ui/progress";
 import { runInference } from "../utils/mockAI";
 import { FoodProduct, AnalysisResult } from "../types";
 
+// Toggle to false when connecting to a real backend API
+const USE_MOCK_INFERENCE = true;
+const API_ENDPOINT = "/api/v1/analyze";
+
 const PRODUCTS: FoodProduct[] = ["Saffron", "Vanilla", "Cashews", "Pistachios", "A2 Desi Cow Milk"];
 
 const STEPS = [
-  "Preprocessing image",
-  "Applying SNV to spectra",
-  "Normalizing sensor data",
-  "Running modality encoders",
-  "Fusing modalities",
-  "Generating Grad-CAM & attention",
-  "Finalizing verdict"
+  "Preprocessing visual payload",
+  "Applying SNV transformation to spectra",
+  "Normalizing tabular telemetry",
+  "Running multi-branch encoders",
+  "Fusing modal embeddings",
+  "Computing Grad-CAM heatmaps",
+  "Synthesizing diagnostic output"
 ];
 
-export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => void }) {
+interface AnalyzerProps {
+  onComplete: (res: AnalysisResult) => void;
+}
+
+export function Analyzer({ onComplete }: AnalyzerProps) {
   const [product, setProduct] = useState<FoodProduct>("Saffron");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -32,6 +51,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [stepLabel, setStepLabel] = useState(STEPS[0]);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const sensorEnabled = Boolean(sensorFile) && sensorParseError == null;
   const canRun = Boolean(image) || Boolean(spectralFile) || sensorEnabled;
@@ -64,10 +84,6 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
       try {
         const text = String(reader.result ?? "");
         const ext = file.name.split(".").pop()?.toLowerCase();
-
-        // Accept either:
-        // - JSON: { "pH": 6.7, "Moisture %": 12.3 }
-        // - CSV/TXT: each line "key,value" (header allowed)
         let parsed: Record<string, number> = {};
 
         if (ext === "json") {
@@ -85,7 +101,6 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
             .filter(Boolean);
 
           for (const line of lines) {
-            // skip header-ish lines
             if (/^(key|name)\s*,\s*(value|val)$/i.test(line)) continue;
             const parts = line.split(",");
             if (parts.length < 2) continue;
@@ -97,7 +112,7 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
 
         if (Object.keys(parsed).length === 0) {
           setSensors({});
-          setSensorParseError("Could not read any numeric sensor values from this file.");
+          setSensorParseError("No valid key-value numeric entries found in file.");
           return;
         }
 
@@ -105,12 +120,12 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
         setSensorParseError(null);
       } catch {
         setSensors({});
-        setSensorParseError("Failed to parse sensor file. Try CSV (key,value) or JSON.");
+        setSensorParseError("Failed to parse file. Please upload a valid CSV or JSON format.");
       }
     };
     reader.onerror = () => {
       setSensors({});
-      setSensorParseError("Failed to read sensor file.");
+      setSensorParseError("Error reading sensor data file.");
     };
     reader.readAsText(file);
   };
@@ -119,12 +134,13 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
     setAnalyzing(true);
     setProgress(0);
     setStepLabel(STEPS[0]);
+    setApiError(null);
 
-    // Simulate progress
-    const totalTime = 1500 + Math.random() * 1000;
+    // Progress bar simulation timer
+    const totalTime = 2200;
     const intervalTime = totalTime / 100;
-    
     let currentProgress = 0;
+
     const timer = setInterval(() => {
       currentProgress += 1;
       setProgress(currentProgress);
@@ -141,48 +157,77 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
     }, intervalTime);
 
     try {
-      const result = await runInference({
-        product,
-        image: imagePreview || undefined,
-        spectralFile: spectralFile || undefined,
-        sensors,
-        sensorEnabled
-      });
-      
-      // ensure we wait at least as long as the simulation
+      let result: AnalysisResult;
+
+      if (USE_MOCK_INFERENCE) {
+        // Mock execution
+        result = await runInference({
+          product,
+          image: imagePreview || undefined,
+          spectralFile: spectralFile || undefined,
+          sensors,
+          sensorEnabled
+        });
+      } else {
+        // Backend API payload payload preparation
+        const formData = new FormData();
+        formData.append("product", product);
+        if (image) formData.append("image", image);
+        if (spectralFile) formData.append("spectral_file", spectralFile);
+        if (sensorEnabled) formData.append("sensor_data", JSON.stringify(sensors));
+
+        const response = await fetch(API_ENDPOINT, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Inference engine failed with status ${response.status}`);
+        }
+
+        result = await response.json();
+      }
+
+      // Smooth transition to results page
       setTimeout(() => {
         setAnalyzing(false);
         onComplete(result);
       }, totalTime + 100);
-      
-    } catch (err) {
-      console.error(err);
-      setAnalyzing(false);
+
+    } catch (err: any) {
+      console.error("Analysis Error:", err);
       clearInterval(timer);
+      setAnalyzing(false);
+      setApiError(err?.message || "Failed to complete sample inference. Check system connectivity.");
     }
   };
 
   if (analyzing) {
     return (
-      <div className="container mx-auto px-4 py-24 max-w-3xl flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in duration-500">
-        <div className="w-24 h-24 rounded-full bg-black/20 flex items-center justify-center mb-8 relative">
-          <div className="absolute inset-0 border-4 border-black/30 rounded-full"></div>
+      <div className="w-full min-h-[65vh] flex flex-col items-center justify-center py-16 px-6 animate-in fade-in duration-500">
+        <div className="relative w-20 h-20 mb-8 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full border-2 border-black/10"></div>
           <div 
-            className="absolute inset-0 border-4 border-black rounded-full border-t-transparent animate-spin"
-            style={{ animationDuration: '1.5s' }}
+            className="absolute inset-0 rounded-full border-2 border-[#E06D53] border-t-transparent animate-spin"
+            style={{ animationDuration: '1.2s' }}
           ></div>
-          <Cpu className="w-10 h-10 text-black animate-pulse" />
+          <Cpu className="w-8 h-8 text-[#E06D53] animate-pulse" />
         </div>
         
-        <h2 className="text-2xl font-bold mb-2">Analyzing Sample</h2>
-        <p className="text-muted-foreground mb-12 text-lg h-8">{stepLabel}...</p>
+        <h2 className="font-serif-heading text-2xl font-normal text-[#111111] mb-2">
+          Processing Sample Payload
+        </h2>
+        
+        <p className="text-sm font-mono text-black/60 mb-8 h-6 text-center">
+          {stepLabel}...
+        </p>
         
         <div className="w-full max-w-md space-y-2">
-          <Progress value={progress} className="h-3" data-testid="progress-analysis" />
-          <div className="flex justify-between text-xs text-muted-foreground font-mono">
-            <span>0%</span>
-            <span>{Math.round(progress)}%</span>
-            <span>100%</span>
+          <Progress value={progress} className="h-2 bg-black/5" data-testid="progress-analysis" />
+          <div className="flex justify-between text-[11px] text-black/40 font-mono">
+            <span>START</span>
+            <span className="font-semibold text-[#B55A30]">{Math.round(progress)}%</span>
+            <span>COMPLETE</span>
           </div>
         </div>
       </div>
@@ -190,190 +235,181 @@ export function Analyzer({ onComplete }: { onComplete: (res: AnalysisResult) => 
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl space-y-8 animate-in fade-in duration-300">
+    <div className="max-w-4xl mx-auto mt-10 px-6 py-8 space-y-8 animate-in fade-in duration-300">
+      
+      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold mb-2">Configure Analysis</h1>
-        <p className="text-muted-foreground">Select the product type and provide available sensor data.</p>
+        <h1 className="font-serif-heading text-3xl font-normal text-[#111111] mb-1">
+          Configure Inference Pipeline
+        </h1>
+        <p className="text-sm text-black/60 font-sans">
+          Select target commodity category and upload modal datasets for real-time fusion processing.
+        </p>
       </div>
 
-      {/* Step 1: Product */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <span className="bg-black text-black-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">1</span>
-            Select Target Product
+      {apiError && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700 text-xs">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{apiError}</span>
+        </div>
+      )}
+
+      {/* Step 1: Target Product Selection */}
+      <Card className="bg-white/90 border-black/5 shadow-xs">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2 uppercase tracking-wider text-black/70">
+            <span className="bg-[#FAF8F5] border border-black/10 text-[#B55A30] w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold">1</span>
+            Target Product
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {PRODUCTS.map(p => (
-              <Button
-                key={p}
-                variant={product === p ? "default" : "outline"}
-                className={`${product === p ? "bg-white text-black" : "bg-transparent"} cursor-pointer`}
-                onClick={() => { setProduct(p); setSensors({}); }}
-                data-testid={`button-product-${p.replace(/\s+/g, '-').toLowerCase()}`}
-              >
-                {p}
-              </Button>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+            {PRODUCTS.map(p => {
+              const selected = product === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => { setProduct(p); setSensors({}); }}
+                  className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all border text-center cursor-pointer ${
+                    selected 
+                      ? "bg-[#111111] text-white border-[#111111] shadow-xs" 
+                      : "bg-[#FAF8F5] text-black/70 border-black/5 hover:border-black/20"
+                  }`}
+                  data-testid={`button-product-${p.replace(/\s+/g, '-').toLowerCase()}`}
+                >
+                  {p}
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
 
-      {/* Step 2: Modalities */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <span className="bg-black text-black-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">2</span>
-              Visual Data (Optional)
+      {/* Step 2: Multi-Modal File Upload Inputs */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        {/* Visual Modality */}
+        <Card className="bg-white/90 border-black/5 shadow-xs flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold flex items-center gap-2 uppercase tracking-wider text-black/70">
+              <span className="bg-[#FAF8F5] border border-black/10 text-[#B55A30] w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold">2</span>
+              Visual Stream
             </CardTitle>
-            <CardDescription>Upload microscopic or macro imagery.</CardDescription>
+            <CardDescription className="text-xs text-black/50">Microscopic or imagery input</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             {imagePreview ? (
-              <div className="relative rounded-lg overflow-hidden border border-border group bg-black/50 aspect-video flex items-center justify-center">
-                <img src={imagePreview} alt="Preview" className="max-h-full object-contain" />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="destructive" size="sm" onClick={() => { setImage(null); setImagePreview(null); }}>Remove</Button>
-                </div>
+              <div className="relative rounded-xl overflow-hidden border border-black/10 group aspect-video bg-black/5 flex items-center justify-center">
+                <img src={imagePreview} alt="Sample preview" className="max-h-full object-contain" />
+                <button 
+                  onClick={() => { setImage(null); setImagePreview(null); }}
+                  className="absolute top-2 right-2 bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
             ) : (
-              <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-black/50 hover:bg-card transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <UploadCloud className="w-8 h-8 mb-3 text-muted-foreground" />
-                  <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-foreground">Click to upload</span> or drag and drop</p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
-                </div>
+              <Label className="flex flex-col items-center justify-center w-full aspect-video border border-dashed border-black/15 rounded-xl cursor-pointer hover:border-[#E06D53] hover:bg-[#FAF8F5] transition-colors p-4 text-center">
+                <UploadCloud className="w-6 h-6 mb-2 text-[#E06D53]" />
+                <span className="text-xs font-medium text-[#111111]">Upload Image</span>
+                <span className="text-[10px] text-black/40 mt-0.5">PNG, JPG up to 10MB</span>
                 <Input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} data-testid="input-image" />
               </Label>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <span className="bg-black text-black-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">3</span>
-              Spectral Data (Optional)
+        {/* Spectral Modality */}
+        <Card className="bg-white/90 border-black/5 shadow-xs flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold flex items-center gap-2 uppercase tracking-wider text-black/70">
+              <span className="bg-[#FAF8F5] border border-black/10 text-[#B55A30] w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold">3</span>
+              Spectral Stream
             </CardTitle>
-            <CardDescription>Upload NIR/FTIR spectral file.</CardDescription>
+            <CardDescription className="text-xs text-black/50">NIR / FTIR spectroscopy file</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             {spectralFile ? (
-              <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-card/50">
-                <div className="w-10 h-10 rounded bg-black/20 flex items-center justify-center text-black">
-                  <FileType className="w-5 h-5" />
+              <div className="flex items-center gap-3 p-3 border border-black/10 rounded-xl bg-[#FAF8F5]">
+                <FileType className="w-5 h-5 text-[#E06D53] shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-[#111111] truncate">{spectralFile.name}</p>
+                  <p className="text-[10px] text-black/40">{(spectralFile.size / 1024).toFixed(1)} KB</p>
                 </div>
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-medium truncate">{spectralFile.name}</p>
-                  <p className="text-xs text-muted-foreground">{(spectralFile.size / 1024).toFixed(1)} KB</p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setSpectralFile(null)}>
-                  &times;
-                </Button>
+                <button onClick={() => setSpectralFile(null)} className="text-black/40 hover:text-black">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             ) : (
-              <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-black/50 hover:bg-card transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Activity className="w-8 h-8 mb-3 text-muted-foreground" />
-                  <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold text-foreground">Click to upload</span> or drag and drop</p>
-                  <p className="text-xs text-muted-foreground">CSV, TXT, SPC, DX</p>
-                </div>
+              <Label className="flex flex-col items-center justify-center w-full aspect-video border border-dashed border-black/15 rounded-xl cursor-pointer hover:border-[#E06D53] hover:bg-[#FAF8F5] transition-colors p-4 text-center">
+                <Activity className="w-6 h-6 mb-2 text-[#E06D53]" />
+                <span className="text-xs font-medium text-[#111111]">Upload Spectral Data</span>
+                <span className="text-[10px] text-black/40 mt-0.5">CSV, TXT, SPC</span>
                 <Input type="file" accept=".csv,.txt,.xlsx,.spc,.dx" className="hidden" onChange={handleSpectralUpload} data-testid="input-spectral" />
               </Label>
             )}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <span className="bg-black text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">4</span>
-              Sensor Data (Optional)
+
+        {/* Sensor Modality */}
+        <Card className="bg-white/90 border-black/5 shadow-xs flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold flex items-center gap-2 uppercase tracking-wider text-black/70">
+              <span className="bg-[#FAF8F5] border border-black/10 text-[#B55A30] w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold">4</span>
+              Sensor Telemetry
             </CardTitle>
-            <CardDescription>Upload CSV/JSON sensor data file.</CardDescription>
+            <CardDescription className="text-xs text-black/50">Tabular pH, density, moisture data</CardDescription>
           </CardHeader>
-
-          <CardContent>
+          <CardContent className="pt-2">
             {sensorFile ? (
-              <div className="flex items-center gap-4 p-4 border border-border rounded-lg bg-card/50">
-                <div className="w-10 h-10 rounded bg-primary/20 flex items-center justify-center text-primary">
-                  <FileType className="w-5 h-5" />
-                </div>
-
-                <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-medium truncate">{sensorFile.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(sensorFile.size / 1024).toFixed(1)} KB
-                  </p>
+              <div className="flex items-center gap-3 p-3 border border-black/10 rounded-xl bg-[#FAF8F5]">
+                <Database className="w-5 h-5 text-[#E06D53] shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-[#111111] truncate">{sensorFile.name}</p>
                   {sensorParseError ? (
-                    <p className="text-xs text-destructive mt-1">{sensorParseError}</p>
+                    <p className="text-[10px] text-red-500 truncate">{sensorParseError}</p>
                   ) : (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Parsed {Object.keys(sensors).length} value{Object.keys(sensors).length === 1 ? "" : "s"}.
-                    </p>
+                    <p className="text-[10px] text-[#B55A30]">Parsed {Object.keys(sensors).length} keys</p>
                   )}
                 </div>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setSensorFile(null);
-                    setSensors({});
-                    setSensorParseError(null);
-                  }}
-                >
-                  &times;
-                </Button>
+                <button onClick={() => { setSensorFile(null); setSensors({}); setSensorParseError(null); }} className="text-black/40 hover:text-black">
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             ) : (
-              <Label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-card transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Database className="w-8 h-8 mb-3 text-muted-foreground" />
-                  <p className="mb-2 text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">
-                      Click to upload
-                    </span>{" "}
-                    or drag and drop
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    CSV, TXT, JSON
-                  </p>
-                </div>
-
-                <Input
-                  type="file"
-                  accept=".csv,.txt,.json"
-                  className="hidden"
-                  onChange={handleSensorUpload}
-                  data-testid="input-sensors"
-                />
+              <Label className="flex flex-col items-center justify-center w-full aspect-video border border-dashed border-black/15 rounded-xl cursor-pointer hover:border-[#E06D53] hover:bg-[#FAF8F5] transition-colors p-4 text-center">
+                <Database className="w-6 h-6 mb-2 text-[#E06D53]" />
+                <span className="text-xs font-medium text-[#111111]">Upload Sensor Log</span>
+                <span className="text-[10px] text-black/40 mt-0.5">CSV, JSON</span>
+                <Input type="file" accept=".csv,.txt,.json" className="hidden" onChange={handleSensorUpload} data-testid="input-sensors" />
               </Label>
             )}
           </CardContent>
-</Card>
+        </Card>
+
       </div>
 
-      {/* Action */}
-      <div className="pt-6 border-t border-border flex justify-end">
+      {/* Execution Controls */}
+      <div className="pt-4 border-t border-black/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p className="text-xs text-black/50">
+          {!canRun && "Provide at least one input modality (Image, Spectral, or Sensor) to trigger analysis."}
+        </p>
+
         <Button
           size="lg"
           disabled={!canRun}
           onClick={startAnalysis}
-          className="w-full md:w-auto bg-gradient-to-r rounded-full cursor-pointer bg-white text-black font-medium text-lg px-12 py-6 h-auto"
+          className="w-full sm:w-auto bg-[#111111] hover:bg-black text-white rounded-xl text-xs font-medium px-8 py-3 h-auto cursor-pointer shadow-xs disabled:opacity-40 flex items-center justify-center gap-2"
           data-testid="button-run-analysis"
         >
-          {canRun ? <Play className="w-5 h-5 mr-2 fill-current" /> : null}
-          Run FoodGuard-AI
+          <span>Scan & Analyze Sample</span>
+          <ArrowRight className="w-4 h-4 text-[#E06D53] transition-transform group-hover:translate-x-0.5" />
         </Button>
       </div>
-      {!canRun && (
-        <p className="text-center text-sm text-destructive mt-2">
-          Provide at least one input modality (Image, Spectral, or Sensor file) to run analysis.
-        </p>
-      )}
+
     </div>
   );
 }
+
+export default Analyzer;

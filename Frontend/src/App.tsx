@@ -18,17 +18,30 @@ type ViewState = "dashboard" | "analyzer" | "results" | "history" | "about";
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<ViewState>("dashboard");
-  const [history, setHistory] = useState<AnalysisResult[]>([]);
+  
+  // Initialize history state from localStorage or empty array
+  const [history, setHistory] = useState<AnalysisResult[]>(() => {
+    const saved = localStorage.getItem("foodguard_history");
+    return saved ? JSON.parse(saved) : [];
+  });
+  
   const [currentResult, setCurrentResult] = useState<AnalysisResult | null>(null);
 
-  // Force dark mode
+  // Enforce light theme and set root background to match design
   useEffect(() => {
-    document.documentElement.classList.add("dark");
+    document.documentElement.classList.remove("dark");
+    document.documentElement.style.backgroundColor = "#FAF8F5";
+    document.body.style.backgroundColor = "#FAF8F5";
   }, []);
+
+  // Sync history updates to localStorage
+  useEffect(() => {
+    localStorage.setItem("foodguard_history", JSON.stringify(history));
+  }, [history]);
 
   const handleAnalysisComplete = (res: AnalysisResult) => {
     setCurrentResult(res);
-    setHistory(prev => [res, ...prev]);
+    setHistory((prev) => [res, ...prev]);
     setCurrentView("results");
   };
 
@@ -38,14 +51,14 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background text-foreground selection:bg-primary/30">
+    <div className="min-h-screen w-full flex flex-col bg-[#FAF8F5] text-[#111111] antialiased selection:bg-[#E06D53]/20">
       <Navbar 
         currentView={currentView} 
         setView={(v) => setCurrentView(v as ViewState)} 
         historyCount={history.length}
       />
       
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 w-full flex flex-col">
         {currentView === "dashboard" && (
           <Dashboard onStart={() => setCurrentView("analyzer")} />
         )}
@@ -62,7 +75,9 @@ function AppContent() {
         )}
         
         {currentView === "results" && !currentResult && (
-          <div className="p-12 text-center text-muted-foreground">No result selected.</div>
+          <div className="flex-1 flex items-center justify-center p-12 text-center text-black/50 text-sm">
+            No analysis result selected. Run a scan to view results.
+          </div>
         )}
         
         {currentView === "history" && (
