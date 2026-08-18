@@ -8,8 +8,9 @@ import {
   Database, 
   X, 
   Check, 
-  AlertCircle ,
-  ArrowRight
+  AlertCircle,
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -37,9 +38,10 @@ const STEPS = [
 
 interface AnalyzerProps {
   onComplete: (res: AnalysisResult) => void;
+  onBack?: () => void;
 }
 
-export function Analyzer({ onComplete }: AnalyzerProps) {
+export function Analyzer({ onComplete, onBack }: AnalyzerProps) {
   const [product, setProduct] = useState<FoodProduct>("Saffron");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -169,7 +171,7 @@ export function Analyzer({ onComplete }: AnalyzerProps) {
           sensorEnabled
         });
       } else {
-        // Backend API payload payload preparation
+        // Backend API payload preparation
         const formData = new FormData();
         formData.append("product", product);
         if (image) formData.append("image", image);
@@ -239,9 +241,21 @@ export function Analyzer({ onComplete }: AnalyzerProps) {
       
       {/* Header */}
       <div>
-        <h1 className="font-serif-heading text-3xl font-normal text-[#111111] mb-1">
-          Configure Inference Pipeline
-        </h1>
+        <div className="flex items-center gap-3 mb-1">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label="Go back to dashboard"
+              className="p-1.5 -ml-1.5 rounded-full hover:bg-black/5 text-black/60 hover:text-[#111111] transition-colors cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-6 h-6 text-[#E06D53]" />
+            </button>
+          )}
+          <h1 className="font-serif-heading text-3xl font-normal text-[#111111]">
+            Configure Inference Pipeline
+          </h1>
+        </div>
         <p className="text-sm text-black/60 font-sans">
           Select target commodity category and upload modal datasets for real-time fusion processing.
         </p>

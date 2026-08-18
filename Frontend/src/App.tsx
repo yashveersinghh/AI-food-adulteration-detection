@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import { Navbar } from "./components/Navbar";
+import { MobileBottomNav } from "./components/MobileBottomNav";
 import { Dashboard } from "./pages/Dashboard";
 import { Analyzer } from "./pages/Analyzer";
 import { Results } from "./pages/Results";
@@ -18,14 +19,16 @@ type ViewState = "dashboard" | "analyzer" | "results" | "history" | "about";
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<ViewState>("dashboard");
-  
+
   // Initialize history state from localStorage or empty array
   const [history, setHistory] = useState<AnalysisResult[]>(() => {
     const saved = localStorage.getItem("foodguard_history");
     return saved ? JSON.parse(saved) : [];
   });
-  
-  const [currentResult, setCurrentResult] = useState<AnalysisResult | null>(null);
+
+  const [currentResult, setCurrentResult] = useState<AnalysisResult | null>(
+    null,
+  );
 
   // Enforce light theme and set root background to match design
   useEffect(() => {
@@ -52,46 +55,52 @@ function AppContent() {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[#FAF8F5] text-[#111111] antialiased selection:bg-[#E06D53]/20">
-      <Navbar 
-        currentView={currentView} 
-        setView={(v) => setCurrentView(v as ViewState)} 
+      <Navbar
+        currentView={currentView}
+        setView={(v) => setCurrentView(v as ViewState)}
         historyCount={history.length}
       />
-      
-      <main className="flex-1 w-full flex flex-col">
+
+      <main className="flex-1 w-full flex flex-col pb-20 md:pb-0">
         {currentView === "dashboard" && (
           <Dashboard onStart={() => setCurrentView("analyzer")} />
         )}
-        
+
         {currentView === "analyzer" && (
-          <Analyzer onComplete={handleAnalysisComplete} />
-        )}
-        
-        {currentView === "results" && currentResult && (
-          <Results 
-            result={currentResult} 
-            onNewAnalysis={() => setCurrentView("analyzer")} 
+          <Analyzer
+            onComplete={handleAnalysisComplete}
+            onBack={() => setCurrentView("dashboard")}
           />
         )}
-        
+
+        {currentView === "results" && currentResult && (
+          <Results
+            result={currentResult}
+            onNewAnalysis={() => setCurrentView("analyzer")}
+          />
+        )}
+
         {currentView === "results" && !currentResult && (
           <div className="flex-1 flex items-center justify-center p-12 text-center text-black/50 text-sm">
             No analysis result selected. Run a scan to view results.
           </div>
         )}
-        
+
         {currentView === "history" && (
-          <History 
-            history={history} 
-            onOpenResult={handleOpenResult} 
+          <History
+            history={history}
+            onOpenResult={handleOpenResult}
             onClear={() => setHistory([])}
           />
         )}
-        
-        {currentView === "about" && (
-          <About />
-        )}
+
+        {currentView === "about" && <About />}
       </main>
+
+      <MobileBottomNav
+        currentView={currentView}
+        setView={(v) => setCurrentView(v as ViewState)}
+      />
     </div>
   );
 }
