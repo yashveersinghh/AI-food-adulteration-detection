@@ -49,66 +49,66 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Base Light Mode - We'll mostly be in dark mode, but let's provide sane defaults */
+/* Base Light Mode - Updated to Warm Editorial Theme */
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
+  --background: 38 33% 97%; /* #FAF8F5 */
+  --foreground: 0 0% 11%;   /* #1C1C1C */
   
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --card-border: 214 32% 91%;
+  --card-foreground: 0 0% 11%;
+  --card-border: 38 15% 90%;
   
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --popover-border: 214 32% 91%;
+  --popover-foreground: 0 0% 11%;
+  --popover-border: 38 15% 90%;
   
-  --primary: 221 83% 53%;
-  --primary-foreground: 210 40% 98%;
+  --primary: 11 72% 60%; /* Warm accent tone #E06D53 */
+  --primary-foreground: 0 0% 100%;
   
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
+  --secondary: 38 20% 93%;
+  --secondary-foreground: 0 0% 11%;
   
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
+  --muted: 38 20% 93%;
+  --muted-foreground: 0 0% 45%;
   
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 38 20% 93%;
+  --accent-foreground: 0 0% 11%;
   
   --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive-foreground: 0 0% 98%;
 
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 221 83% 53%;
+  --border: 38 15% 90%;
+  --input: 38 15% 90%;
+  --ring: 11 72% 60%;
 
-  --app-font-sans: "Inter", sans-serif;
-  --app-font-serif: Georgia, serif;
+  --app-font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+  --app-font-serif: "Instrument Serif", Georgia, serif;
   --app-font-mono: "JetBrains Mono", monospace;
   
   --radius: 0.75rem;
 }
 
-/* Dark Mode - The requested theme */
+/* Dark Mode */
 .dark {
-  --background: 240 10% 4%; /* gray-950 roughly */
-  --foreground: 0 0% 98%; /* gray-50 */
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
   
-  --card: 240 10% 6%; /* gray-900 */
+  --card: 240 10% 6%;
   --card-foreground: 0 0% 98%;
-  --card-border: 240 6% 15%; /* gray-800 */
+  --card-border: 240 6% 15%;
   
   --popover: 240 10% 6%;
   --popover-foreground: 0 0% 98%;
   --popover-border: 240 6% 15%;
   
-  --primary: 250 89% 65%; /* Purpleish */
+  --primary: 250 89% 65%;
   --primary-foreground: 0 0% 98%;
   
-  --secondary: 240 6% 15%; /* gray-800 */
+  --secondary: 240 6% 15%;
   --secondary-foreground: 0 0% 98%;
   
   --muted: 240 6% 15%;
-  --muted-foreground: 240 5% 65%; /* gray-400 */
+  --muted-foreground: 240 5% 65%;
   
   --accent: 240 6% 15%;
   --accent-foreground: 0 0% 98%;
@@ -116,7 +116,7 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 240 6% 15%; /* gray-800 */
+  --border: 240 6% 15%;
   --input: 240 6% 15%;
   --ring: 250 89% 65%;
 }
@@ -128,4 +128,9 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+}
+
+/* Helper Class for Headlines */
+.font-serif-heading {
+  font-family: var(--app-font-serif);
 }
