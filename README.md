@@ -6,10 +6,13 @@ FoodGuard-AI is an AI-based food adulteration detection system designed to ident
 
 The project aims to provide a simple interface where users can upload an image of a food product and receive an adulteration prediction along with visual explanations of the model's decision.
 
-> **Project Status:** 🚧 In Development
-> The machine learning models and multimodal pipeline are currently being trained and integrated.
-
 ---
+
+## Preview
+
+<!-- Add your landing page screenshot here -->
+
+![Vetted AI Landing Page](./Frontend/public/landing.png)
 
 ## Overview
 
